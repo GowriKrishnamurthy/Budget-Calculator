@@ -79,11 +79,12 @@ body {
 
 .budget__income--text,
 .budget__expenses--text {
-    float: left;  
+    float: left; 
     color: black;
     margin-top: 2px;
     font-size: 16px;
-    letter-spacing: 1px;
+    margin-right: 40px;
+    width:150px;
 }
 .budget__income--value,
 .budget__expenses--value {
@@ -96,7 +97,9 @@ body {
     font-size: 11px;
     float: left;
     width: 34px;
-    margin-left: 10px; }
+    margin-left: 10px;
+    padding: 3px 0;
+}
 
 .budget__expenses--percentage {
     text-align: center;
