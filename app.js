@@ -62,7 +62,9 @@ var UIController=(function(){
         inputType:'.add__type',
         inputDescription:'.add__description',
         inputValue:'.add__value' ,
-        inputBtn:'.add__btn'
+        inputBtn:'.add__btn',
+        incomeContainer:'.income__list',
+        expenseContainer:'.expenses__list' 
     }
     return {
         getInput:function(){
@@ -71,16 +73,77 @@ var UIController=(function(){
                 description: document.querySelector(DOMStrings.inputDescription).value, value:document.querySelector(DOMStrings.inputValue).value
             };
         },
+           
+        addListItem:function(obj,type)
+        {
+            var htmlString,newHTMLString,HTMLElement;
+            
+            if(obj.description!="" && obj.value!="")
+            {
+                if(type==='income')
+                {
+                    HTMLElement= DOMStrings.incomeContainer;
+                    //Create HTML string with placeholder tags.
+
+                    htmlString='<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                }
+                else if(type==='expense')
+                {
+                    HTMLElement= DOMStrings.expenseContainer;
+                    htmlString='<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                }
+
+                // Replace the placeholder tags with actual data received from object
+                newHTMLString=htmlString.replace('%id%',obj.id); 
+                newHTMLString=newHTMLString.replace('%description%',obj.description);
+                newHTMLString=newHTMLString.replace('%value%',obj.value);
+
+                //Insert the HTML into the DOM 
+                document.querySelector(HTMLElement).insertAdjacentHTML('beforeend',newHTMLString);
+
+                }
+/*            else if(obj.description ==="")
+            {
+                alert("Enter description");
+            }
+            else if(obj.value === "")
+            {
+                alert("Enter value");
+            }
+            */
+            
+        },
+        
         //To use in Global app controller.
         getDOMStrings:function(){
             return DOMStrings;
+        },
+        
+        //public method to clear all input fields
+        clearFields: function()
+        {
+            var inputFields, inputFieldsArray;
+        
+            //querselectorall returns a list..
+            inputFields= document.querySelectorAll(DOMStrings.inputDescription+ ', ' + DOMStrings.inputValue);
+            
+            //convert listitem to an array
+            inputFieldsArray= Array.prototype.slice.call(inputFields);
+
+            // Clear all the input fields and set focus to description field
+            inputFieldsArray.forEach(
+                function(current, index, array)
+                {
+                    current.value="";
+                });
+            inputFieldsArray[0].focus();
         }
-    }
+    };
+   
 })();
 
 // 3. Data MODULE(GLOBAL APP CONTROLLER) that handles User Interface 
 var controller = (function(budgetCtrl, UICtrl) {
-
     var setupEventListeners=function(){          
         var DOM=UICtrl.getDOMStrings();
         document.querySelector(DOM.inputBtn).addEventListener('click',ctrlAddItem);
@@ -101,9 +164,15 @@ var controller = (function(budgetCtrl, UICtrl) {
 
         // 2. Add the item to the budget controller's data structure.
         newlyAddedItem = budgetCtrl.addItem(input.type,input.description,input.value);
+        
         // 3. Add the item to the UI.
-        // 4. Calcuate the budget.
-        // 5. Display  the budget on the UI.        
+        UICtrl.addListItem(newlyAddedItem,input.type);
+        
+        //4.Clear the input fields
+        UICtrl.clearFields();
+        
+        // 5. Calcuate the budget.
+        // 6. Display  the budget on the UI.        
     }
     
     return{
