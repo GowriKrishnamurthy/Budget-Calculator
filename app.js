@@ -62,14 +62,20 @@ var budgetController = (function(){
             return newItem;
         },
         deleteItem:function(type,id){
-
-            if(type==="income"){
-                newItem=new Income(itemId,desc,val);
-            }
-            else if(type==="expense"){
-                newItem=new Expense(itemId,desc,val);
-            }            
+            var allIDs,indexOfId;
             
+            // map returns array of all IDs
+            allIDs = data.allItems[type].map(function(eachElement){
+                                    return eachElement.id;
+                        });
+            //Find index of each array element(id).
+            indexOfId=allIDs.indexOf(id);
+            
+            //If element is found in the array
+            if(indexOfId!==-1)
+            {
+                data.allItems[type].splice(indexOfId,1);
+            }
         },
         calculateBudget:function(){
             // Calculate total income and expenses
@@ -81,9 +87,9 @@ var budgetController = (function(){
             
             // Calculate the % of income spent 
             if(data.totals.income>0)
-           {
+            {
                data.percentage=Math.round((data.totals.expense/data.totals.income)*100);
-           }
+            }
             else{
                 data.percentage=-1;
             }
@@ -152,6 +158,15 @@ var UIController=(function(){
             document.querySelector(HTMLElement).insertAdjacentHTML('beforeend',newHTMLString);
         },
         
+        deleteListItem:function(selectorID)
+        {
+            //Get IDs for list item - income-0,income-1,income-2, etc. 
+            var el= document.getElementById(selectorID);
+            
+            //Rempve the particular element from DOM
+            el.parentNode.removeChild(el);
+        },
+
         //To use in Global app controller.
         getDOMStrings:function(){
             return DOMStrings;
@@ -253,11 +268,16 @@ var controller = (function(budgetCtrl, UICtrl) {
             splitID = itemID.split('-');
             // income or expense;
             type = splitID[0];
-            ID= splitID[1];
+            ID = parseInt(splitID[1]);
             
             // 1. Delete the item from the datastructure
+            budgetCtrl.deleteItem(type,ID);
+            
             // 2. Delete the item from the UI
+            UICtrl.deleteListItem(itemID);
+            
             // 3. Update and display the new budget
+            updateBudget();
         }
     };
     
