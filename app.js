@@ -70,7 +70,7 @@ var UIController=(function(){
         getInput:function(){
             return {
                 type: document.querySelector(DOMStrings.inputType).value,
-                description: document.querySelector(DOMStrings.inputDescription).value, value:document.querySelector(DOMStrings.inputValue).value
+                description: document.querySelector(DOMStrings.inputDescription).value, value:parseFloat(document.querySelector(DOMStrings.inputValue).value)
             };
         },
            
@@ -78,40 +78,26 @@ var UIController=(function(){
         {
             var htmlString,newHTMLString,HTMLElement;
             
-            if(obj.description!="" && obj.value!="")
+            if(type==='income')
             {
-                if(type==='income')
-                {
-                    HTMLElement= DOMStrings.incomeContainer;
-                    //Create HTML string with placeholder tags.
+                HTMLElement= DOMStrings.incomeContainer;
+                //Create HTML string with placeholder tags.
 
-                    htmlString='<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-                }
-                else if(type==='expense')
-                {
-                    HTMLElement= DOMStrings.expenseContainer;
-                    htmlString='<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-                }
-
-                // Replace the placeholder tags with actual data received from object
-                newHTMLString=htmlString.replace('%id%',obj.id); 
-                newHTMLString=newHTMLString.replace('%description%',obj.description);
-                newHTMLString=newHTMLString.replace('%value%',obj.value);
-
-                //Insert the HTML into the DOM 
-                document.querySelector(HTMLElement).insertAdjacentHTML('beforeend',newHTMLString);
-
-                }
-/*            else if(obj.description ==="")
-            {
-                alert("Enter description");
+                htmlString='<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
-            else if(obj.value === "")
+            else if(type==='expense')
             {
-                alert("Enter value");
+                HTMLElement= DOMStrings.expenseContainer;
+                htmlString='<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
-            */
-            
+
+            // Replace the placeholder tags with actual data received from object
+            newHTMLString=htmlString.replace('%id%',obj.id); 
+            newHTMLString=newHTMLString.replace('%description%',obj.description);
+            newHTMLString=newHTMLString.replace('%value%',obj.value);
+
+            //Insert the HTML into the DOM 
+            document.querySelector(HTMLElement).insertAdjacentHTML('beforeend',newHTMLString);
         },
         
         //To use in Global app controller.
@@ -156,24 +142,38 @@ var controller = (function(budgetCtrl, UICtrl) {
         });    
     };
     
+    var updateBudget=function(){
+
+        // 1. Calcuate the budget.
+        
+        // 2. Return the budget
+        
+        // 3. Display  the budget on the UI.  
+    };
+    
     var ctrlAddItem = function(){
         var input,newlyAddedItem;
             
         // 1. Get the field input data.
         input=UICtrl.getInput();
 
-        // 2. Add the item to the budget controller's data structure.
-        newlyAddedItem = budgetCtrl.addItem(input.type,input.description,input.value);
-        
-        // 3. Add the item to the UI.
-        UICtrl.addListItem(newlyAddedItem,input.type);
-        
-        //4.Clear the input fields
-        UICtrl.clearFields();
-        
-        // 5. Calcuate the budget.
-        // 6. Display  the budget on the UI.        
-    }
+        // If input is empty, no need to proceed with next steps.
+        if((input.description!=="") && (!isNaN(input.value) && input.value>0))
+        {
+
+            // 2. Add the item to the budget controller's data structure.
+            newlyAddedItem = budgetCtrl.addItem(input.type,input.description,input.value);
+
+            // 3. Add the item to the UI.
+            UICtrl.addListItem(newlyAddedItem,input.type);
+
+            //4.Clear the input fields
+            UICtrl.clearFields();     
+
+            //Calculate and update budget
+            updateBudget();
+        }
+    };
     
     return{
         init:function(){
