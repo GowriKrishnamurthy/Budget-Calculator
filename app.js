@@ -4,8 +4,22 @@ var budgetController = (function(){
         this.id=id;
         this.description=description;
         this.value=value;
+        this.expensePercentage=-1;
     };
     
+    /*
+    Expense.prototype.calcExpensePercentage=function(totalIncome){
+        if(totalIncome>0){      
+            this.percentage=Math.round((this.value/totalIncome)*100);
+        } else {
+            this.expensePercentage=-1;
+        }
+    };
+    
+    Expense.prototype.getExpensePercentage=function(){
+        return this.expensePercentage;
+    }
+    */
     var Income=function(id,description,value){
         this.id=id;
         this.description=description;
@@ -21,6 +35,7 @@ var budgetController = (function(){
         });
         data.totals[type] = sum;
     };
+    
     //private data stucture to store item details
     var data={
         allItems:{
@@ -32,7 +47,7 @@ var budgetController = (function(){
             income:0
         },
         budget:0,
-        percentage:-1 //doesnt exisit inititally
+        totalPercentage:-1 //doesnt exisit inititally
     };
     return{
         addItem:function(type,desc,val){
@@ -88,16 +103,30 @@ var budgetController = (function(){
             // Calculate the % of income spent 
             if(data.totals.income>0)
             {
-               data.percentage=Math.round((data.totals.expense/data.totals.income)*100);
+                data.totalPercentage=Math.round((data.totals.expense/data.totals.income)*100);
             }
             else{
-                data.percentage=-1;
+                data.totalPercentage=-1;
             }
+            console.log(data.totalPercentage);
         },
+        /*
+        calculateExpensePercentage:function(){
+             data.allItems.expense.forEach(function(current){
+                current.calcExpensePercentage(data.totals.income);
+            });
+        },
+        getExpensePercentages:function(){
+             var allPercentages = data.allItems.expense.map(function(current){
+                return current.getExpensePercentage();
+            });
+            return allPercentages;
+        },
+        */
         getBudget:function(){
             return{
                 budget:data.budget,
-                percentage:data.percentage,
+                totalPercentage:data.totalPercentage,
                 totalIncome:data.totals.income,
                 totalExpense:data.totals.expense
             };
@@ -121,9 +150,17 @@ var UIController=(function(){
         budgetLabel:'.budget__value',
         incomeLabel:'.budget__income--value',
         expensesLabel:'.budget__expenses--value',
-        percentageLabel:'.budget__expenses--percentage',
-        container:'.container'
-    }
+        totalPercentageLabel:'.budget__expenses--percentage',
+        container:'.container',
+        expensePercentageLabel: '.item__percentage'
+    };
+    
+    var nodeListForEach = function(list, callback) {
+        for (var i = 0; i < list.length; i++) {
+            callback(list[i], i);
+        }
+    };
+    
     return {
         getInput:function(){
             return {
@@ -166,12 +203,7 @@ var UIController=(function(){
             //Rempve the particular element from DOM
             el.parentNode.removeChild(el);
         },
-
-        //To use in Global app controller.
-        getDOMStrings:function(){
-            return DOMStrings;
-        },
-        
+      
         //public method to clear all input fields
         clearFields: function()
         {
@@ -197,16 +229,30 @@ var UIController=(function(){
             document.querySelector(DOMStrings.incomeLabel).textContent= obj.totalIncome;
             document.querySelector(DOMStrings.expensesLabel).textContent=obj.totalExpense;
             
-            if(obj.percentage>0){
-                document.querySelector(DOMStrings.percentageLabel).textContent=obj.percentage + " %";  
+            
+            if(obj.totalPercentage>0){
+                document.querySelector(DOMStrings.totalPercentageLabel).textContent=obj.totalPercentage + " %";  
+            } else {
+                document.querySelector(DOMStrings.totalPercentageLabel).textContent=" ---";   
             }
-            else
-            {
-                document.querySelector(DOMStrings.percentageLabel).textContent=" ---";   
-            }
+        },
+/*
+        displayExpensePercentage : function(percentage) {
+            var fields = document.querySelectorAll(DOMStrings.expensePercentageLabel);
+            nodeListForEach(fields, function(current, index) {
+                if (percentage[index] > 0) {
+                    current.textContent = percentage[index] + '%';
+                } else {
+                    current.textContent = '---';
+                }
+            });
+        },
+  */      
+        //To use in Global app controller.
+        getDOMStrings:function(){
+            return DOMStrings;
         }
-    };
-   
+    }
 })();
 
 // 3. Global App CONTROLLER module
@@ -233,8 +279,20 @@ var controller = (function(budgetCtrl, UICtrl) {
         
         // 3. Display  the budget on the UI.  
         UICtrl.displayBudget(budget);
+    }; 
+    /*
+    var updateExpensePercentage=function(){
+        // 1. Calculate the percentages
+        budgetCtrl.calculateExpensePercentage();
+        
+        // 2. Read  percentages from the budget controller
+        var expensePercentage=budgetCtrl.getExpensePercentages();
+        
+        console.log(expensePercentage);
+        // 3. Display it on the UI
+        UICtrl.displayExpensePercentage(expensePercentage);
     };
-    
+*/
     var ctrlAddItem = function(){
         var input,newlyAddedItem;
             
@@ -244,18 +302,20 @@ var controller = (function(budgetCtrl, UICtrl) {
         // If input is empty, no need to proceed with next steps.
         if((input.description!=="") && (!isNaN(input.value) && input.value>0))
         {
-
             // 2. Add the item to the budget controller's data structure.
             newlyAddedItem = budgetCtrl.addItem(input.type,input.description,input.value);
 
             // 3. Add the item to the UI.
             UICtrl.addListItem(newlyAddedItem,input.type);
 
-            //4.Clear the input fields
+            // 4.Clear the input fields
             UICtrl.clearFields();     
 
-            //Calculate and update budget
+            // 5. Calculate and update budget
             updateBudget();
+            
+            // 6. Calculate and update percentage
+  //          updateExpensePercentage();
         }
     };
     
@@ -278,6 +338,9 @@ var controller = (function(budgetCtrl, UICtrl) {
             
             // 3. Update and display the new budget
             updateBudget();
+            
+            // 4. Calculate and update percentage
+//            updateExpensePercentage();
         }
     };
     
@@ -285,7 +348,7 @@ var controller = (function(budgetCtrl, UICtrl) {
         init:function(){
             UIController.displayBudget({                
                 budget:0,
-                percentage:-1,
+                totalPercentage:-1,
                 totalIncome:0,
                 totalExpense:0
             });
