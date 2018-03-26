@@ -281,20 +281,6 @@ var UIController=(function(){
             document.querySelector(DOMStrings.dateLabel).textContent =  months[month] + ' ' + year;
         },
 
-        changedType: function() {
-            var fields = document.querySelectorAll(
-                DOMStrings.inputType + ',' +
-                DOMStrings.inputDescription + ',' +
-                DOMStrings.inputValue);
-            
-            nodeListForEach(fields, function(cur) {
-               cur.classList.toggle('red-focus'); 
-            });
-            
-            document.querySelector(DOMStrings.inputBtn).classList.toggle('red');
-            
-        },
-        
         //To use in Global app controller.
         getDOMStrings:function(){
             return DOMStrings;
@@ -315,8 +301,6 @@ var controller = (function(budgetCtrl, UICtrl) {
         }
         });    
         document.querySelector(DOM.container).addEventListener('click',ctrlDeleteItem);
-        
-        document.querySelector(DOM.inputType).addEventListener('change',UICtrl.changedType);
     };
     
     var updateBudget=function(){
@@ -391,7 +375,6 @@ var controller = (function(budgetCtrl, UICtrl) {
             updateExpensePercentage();
         }
     };
-    
     
     return{
         init:function(){
