@@ -148,9 +148,34 @@ var UIController=(function(){
         expensesLabel:'.budget__expenses--value',
         totalPercentageLabel:'.budget__expenses--percentage',
         container:'.container',
-        expensePercentageLabel: '.item__percentage'
+        expensePercentageLabel: '.item__percentage',
+        dateLabel:'.budget__title--month'
     };
-    
+  
+    var formatNumber=function(num,type){
+        var numSplit,intPart,decimalPart, tmp1='', tmp2='';
+        
+        // + or - before number depending on income/expense type, exactly 2 decimal points, comma separating thousands
+        num=Math.abs(num);
+        num=num.toFixed(2);
+        numSplit=num.split('.');
+
+        intPart =numSplit[0];
+        decimalPart=numSplit[1];
+        
+        if(intPart.length>3){
+            tmp1=intPart;
+            while(tmp1.length>3){
+                  tmp2 = ','+tmp1.substr(tmp1.length-3, 3)+tmp2;
+                  tmp1 = intPart.substr(0, tmp1.length-3);
+                }
+                intPart=tmp1+tmp2;
+            //intPart= intPart.substr(0,intPart.length-3) + ',' + intPart.substr(intPart.length-3,3); //input:3811, outut:3,811
+        }
+        num =  (type==='expense'? '-':'+') + " " + intPart + "." + decimalPart;
+        return num;
+    }; 
+
     var nodeListForEach = function(list, callback) {
         for (var i = 0; i < list.length; i++) {
             callback(list[i], i);
@@ -185,7 +210,7 @@ var UIController=(function(){
             // Replace the placeholder tags with actual data received from object
             newHTMLString=htmlString.replace('%id%',obj.id); 
             newHTMLString=newHTMLString.replace('%description%',obj.description);
-            newHTMLString=newHTMLString.replace('%value%',obj.value);
+            newHTMLString=newHTMLString.replace('%value%',formatNumber(obj.value,type));
 
             //Insert the HTML into the DOM 
             document.querySelector(HTMLElement).insertAdjacentHTML('beforeend',newHTMLString);
@@ -221,9 +246,11 @@ var UIController=(function(){
         },
         displayBudget:function(obj)
         {
-            document.querySelector(DOMStrings.budgetLabel).textContent=obj.budget;
-            document.querySelector(DOMStrings.incomeLabel).textContent= obj.totalIncome;
-            document.querySelector(DOMStrings.expensesLabel).textContent=obj.totalExpense;
+           var type;
+            obj.budget>0? type='income':'expense';
+            document.querySelector(DOMStrings.budgetLabel).textContent=formatNumber(obj.budget,type);
+            document.querySelector(DOMStrings.incomeLabel).textContent= formatNumber(obj.totalIncome,'income');
+            document.querySelector(DOMStrings.expensesLabel).textContent=formatNumber(obj.totalExpense,'expense');
             
             if(obj.totalPercentage>0){
                 document.querySelector(DOMStrings.totalPercentageLabel).textContent=obj.totalPercentage + " %";  
@@ -241,6 +268,17 @@ var UIController=(function(){
                     current.textContent = '---';
                 }
             });
+        },
+        
+        displayMonth : function() {
+            var now, months, month, year;
+            
+            now = new Date();
+            months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            month = now.getMonth();
+            
+            year = now.getFullYear();
+            document.querySelector(DOMStrings.dateLabel).textContent =  months[month] + ' ' + year;
         },
 
         //To use in Global app controller.
@@ -340,6 +378,7 @@ var controller = (function(budgetCtrl, UICtrl) {
     
     return{
         init:function(){
+            UIController.displayMonth();
             UIController.displayBudget({                
                 budget:0,
                 totalPercentage:-1,
@@ -347,6 +386,7 @@ var controller = (function(budgetCtrl, UICtrl) {
                 totalExpense:0
             });
             setupEventListeners();
+
         }
     }
 })(budgetController,UIController);
